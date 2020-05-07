@@ -1,9 +1,57 @@
 import 'dart:io';
+import "dart:math";
 
 import 'package:grizzly_io/io_loader.dart';
 import 'package:path/path.dart';
 import 'package:teledart/model.dart';
 import 'package:teledart/teledart.dart';
+
+
+int getMaxLength(Iterable names) {
+  
+ return names.map<int>((n) => (n is num ? n.toString().length : n.length)).reduce(max);
+  
+}
+  
+String lpad(str, len) {
+  
+    int diff = max(0, len - str.length);
+  
+    return (" " * diff) + str;
+  
+}
+  
+String rpad(str, len) {
+  
+    int diff = max(0, len - str.length);
+  
+    return str + (" " * diff);
+  
+}
+  
+String col ( List items ) => "| " + items.join(" | ") + " |";
+
+String leaderboard(List data) {
+  
+  int col1Max = max("ID".length, getMaxLength(data.map((list) => list[0])));
+  
+  int col2Max = max("Teams".length, getMaxLength(data.map((list) => list[1])));
+  
+  int col3Max = max("Points".length, getMaxLength(data.map((list) => list[2])));
+  
+  String topHeader = "** Leaderboard **\n";
+  
+  String header = col([rpad("ID", col1Max),rpad("Team", col2Max), rpad("Points", col3Max)]);
+ 
+  String div = "-" * header.length;
+  
+  String rows = (data.fold<List<String>>([], (init, v) => [...init,
+                                                           col([lpad(v[0].toString(), col1Max),                              rpad(v[1].toString(), col2Max),
+     lpad(v[2].toString(), col3Max)])]).join("\n"));
+  
+  return [topHeader, header, div, rows].join("\n");
+  
+}
 
 Future<Message> week(Message message, TeleDart teleDart) async {
   var week;
@@ -39,10 +87,8 @@ Future<Message> week(Message message, TeleDart teleDart) async {
   // Sort by points
   csv.sort((a, b) => int.parse(a[2]).compareTo(int.parse(b[2])));
 
-  var res = "Week 1's Leaderboard : \nTeam\t| Members\t| Points\n";
-  for (var team in csv) {
-    res += '${team[0]}\t|${team[1]}\t|${team[2]}\n';
-  }
+  res += leaderboard(csv)
+
   return teleDart.replyMessage(message, res,
       parse_mode: 'html', disable_web_page_preview: true);
 }
