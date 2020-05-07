@@ -45,9 +45,7 @@ String leaderboard(List data) {
  
   String div = "-" * header.length;
   
-  String rows = (data.fold<List<String>>([], (init, v) => [...init,
-                                                           col([lpad(v[0].toString(), col1Max),                              rpad(v[1].toString(), col2Max),
-     lpad(v[2].toString(), col3Max)])]).join("\n"));
+  String rows = (data.fold<List<String>>([], (init, v) => [...init, col([lpad(v[0], col1Max),                              rpad(v[1], col2Max), lpad(v[2], col3Max)])]).join("\n"));
   
   return [topHeader, header, div, rows].join("\n");
   
