@@ -89,7 +89,7 @@ Future<Message> week(Message message, TeleDart teleDart) async {
   res += "```" + leaderboard(csv) + "```";
 
   return teleDart.replyMessage(message, res,
-      parse_mode: 'html', disable_web_page_preview: true);
+      parse_mode: 'markdown', disable_web_page_preview: true);
 }
 
 bool isNumeric(String s) {
