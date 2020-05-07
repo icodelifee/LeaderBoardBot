@@ -85,7 +85,7 @@ Future<Message> week(Message message, TeleDart teleDart) async {
   // Sort by points
   csv.sort((a, b) => int.parse(a[2]).compareTo(int.parse(b[2])));
 
-  res += leaderboard(csv)
+  res += leaderboard(csv);
 
   return teleDart.replyMessage(message, res,
       parse_mode: 'html', disable_web_page_preview: true);
