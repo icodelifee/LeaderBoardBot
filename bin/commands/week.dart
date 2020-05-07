@@ -45,7 +45,7 @@ String leaderboard(List data) {
  
   String div = "-" * header.length;
   
-  String rows = (data.fold<List<String>>([], (init, v) => [...init, col([lpad(v[0], col1Max),                              rpad(v[1], col2Max), lpad(v[2], col3Max)])]).join("\n"));
+  String rows = (data.fold<List<String>>([], (init, v) => [...init, col([lpad(v[0], col1Max),rpad(v[1], col2Max), lpad(v[2], col3Max)])]).join("\n"));
   
   return [topHeader, header, div, rows].join("\n");
   
@@ -84,7 +84,8 @@ Future<Message> week(Message message, TeleDart teleDart) async {
 
   // Sort by points
   csv.sort((a, b) => int.parse(a[2]).compareTo(int.parse(b[2])));
-
+  
+  var res = "Week 1's Leaderboard : \nTeam\t| Members\t| Points\n";
   res += leaderboard(csv);
 
   return teleDart.replyMessage(message, res,
