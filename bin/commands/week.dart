@@ -1,60 +1,16 @@
-import 'dart:io';
-import "dart:math";
+import 'dart:io' as io;
+import 'dart:math';
 
 import 'package:grizzly_io/io_loader.dart';
+import 'package:image/image.dart';
 import 'package:path/path.dart';
 import 'package:teledart/model.dart';
 import 'package:teledart/teledart.dart';
 
-
-int getMaxLength(Iterable names) {
-  
- return names.map<int>((n) => (n is num ? n.toString().length : n.length)).reduce(max);
-  
-}
-  
-String lpad(str, len) {
-  
-    int diff = max(0, len - str.length);
-  
-    return (" " * diff) + str;
-  
-}
-  
-String rpad(str, len) {
-  
-    int diff = max(0, len - str.length);
-  
-    return str + (" " * diff);
-  
-}
-  
-String col ( List items ) => "| " + items.join(" | ") + " |";
-
-String leaderboard(List data) {
-  
-  int col1Max = max("ID".length, getMaxLength(data.map((list) => list[0])));
-  
-  int col2Max = max("Teams".length, getMaxLength(data.map((list) => list[1])));
-  
-  int col3Max = max("Points".length, getMaxLength(data.map((list) => list[2])));
-  
-  // String topHeader = "** Leaderboard **\n";
-  
-  String header = col([rpad("ID", col1Max),rpad("Team", col2Max), rpad("Points", col3Max)]);
- 
-  String div = "-" * header.length;
-  
-  String rows = (data.fold<List<String>>([], (init, v) => [...init, col([lpad(v[0], col1Max),rpad(v[1], col2Max), lpad(v[2], col3Max)])]).join("\n"));
-  
-  return [header, div, rows].join("\n");
-  
-}
-
 Future<Message> week(Message message, TeleDart teleDart) async {
-  var week;
+  String week;
   // get week from reponse
-  var exp = RegExp(r'^\/week (.+)$');
+  RegExp exp = RegExp(r'^\/week (.+)$');
   try {
     week = exp.firstMatch(message.text).group(1);
   } catch (e) {
@@ -67,8 +23,8 @@ Future<Message> week(Message message, TeleDart teleDart) async {
     return teleDart.replyMessage(message, 'Sorry! Invalid Week.');
   }
 
-  final filePath =
-      join(dirname(Platform.script.toFilePath()), 'data', 'week$week.csv');
+  final String filePath =
+      join(dirname(io.Platform.script.toFilePath()), 'data', 'week$week.csv');
 
   try {
     //Read CSV From File And Parse
@@ -83,13 +39,32 @@ Future<Message> week(Message message, TeleDart teleDart) async {
   csv.removeAt(0);
 
   // Sort by points
-  csv.sort((a, b) => int.parse(a[2]).compareTo(int.parse(b[2])));
-  
-  var res = "Week 1's Leaderboard : \nTeam\t| Members\t| Points\n";
-  res += "```" + leaderboard(csv) + "```";
+  csv.sort((b, a) => int.parse(a[2]).compareTo(int.parse(b[2])));
 
-  return teleDart.replyMessage(message, res,
-      parse_mode: 'markdown', disable_web_page_preview: true);
+  // Adjust image height dynamically according to the lenght of the list
+  int imageHeight = 100 + ((csv.length) * 25);
+
+  Image image = Image(340, imageHeight);
+
+  // fill image with white bg
+  fill(image, getColor(255, 255, 255));
+
+  // Draw title
+  drawString(image, arial_24, 40, 10, "Week ${week}'s Leaderboard ",
+      color: getColor(0, 0, 0));
+
+  // append user data into image
+  int startPoint = 50;
+  for (List team in csv) {
+    drawString(image, arial_24, 30, startPoint, team[1].replaceAll('@', ''),
+        color: getColor(0, 0, 0));
+    drawString(image, arial_24, 200, startPoint, team[2] + ' Points',
+        color: getColor(119, 0, 207));
+    startPoint += 30;
+  }
+  
+  io.File file = await io.File('test.png').writeAsBytes(encodePng(image));
+  return teleDart.replyPhoto(message, file);
 }
 
 bool isNumeric(String s) {
